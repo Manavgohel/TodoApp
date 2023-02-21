@@ -2,91 +2,120 @@ import React, { useState } from "react";
 import "./Todo.css";
 
 function Todo() {
-  const [todoList, setTodoList] = useState([]);
-  const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [newTodoDescription, setNewTodoDescription] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [completedTodos, setCompletedTodos] = useState([]);
 
-  function handleTitleChange(event) {
-    setNewTodoTitle(event.target.value);
-  }
+  const handleTitleChange = (event) => {
+    setTitle(event.target.value);
+  };
 
-  function handleDescriptionChange(event) {
-    setNewTodoDescription(event.target.value);
-  }
+  const handleDescriptionChange = (event) => {
+    setDescription(event.target.value);
+  };
 
-  function handleAddTodo() {
-    if (newTodoTitle.trim() !== "") {
-      const newTodo = {
-        id: Date.now(),
-        title: newTodoTitle,
-        description: newTodoDescription,
-        isCompleted: false // Add isCompleted state to todo item
-      };
-      setTodoList([...todoList, newTodo]);
-      setNewTodoTitle("");
-      setNewTodoDescription("");
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+
+    if (title.trim() === "" || description.trim() === "") {
+      return;
     }
-  }
 
-  function handleCompleteClick(id) {
-    const updatedTodoList = todoList.map((todo) => {
-      if (todo.id === id) {
-        return {
-          ...todo,
-          isCompleted: true // Update isCompleted state of the specific todo item
-        };
-      }
-      return todo;
-    });
-    setTodoList(updatedTodoList);
-  }
+    const newTodo = {
+      id: Date.now(),
+      title: title,
+      description: description,
+      completed: false,
+    };
 
-  function handleDeleteClick(id) {
-    const updatedTodoList = todoList.filter((todo) => todo.id !== id);
-    setTodoList(updatedTodoList);
-  }
+    setTodos([...todos, newTodo]);
+    setTitle("");
+    setDescription("");
+  };
+
+  const handleCompleteTodo = (todoId) => {
+    const todoIndex = todos.findIndex((todo) => todo.id === todoId);
+    const completedTodo = todos[todoIndex];
+    completedTodo.completed = true;
+
+    setCompletedTodos([...completedTodos, completedTodo]);
+    setTodos(todos.filter((todo) => todo.id !== todoId));
+  };
+
+  const handleDeleteTodo = (todoId) => {
+    setCompletedTodos(completedTodos.filter((todo) => todo.id !== todoId));
+  };
 
   return (
     <div className="todo-container">
-      <h1>My Todo List</h1>
+      <h1>Todo List</h1>
       <div>
-        <input
-          type="text"
-          placeholder="Title"
-          value={newTodoTitle}
-          onChange={handleTitleChange}
-        />
-        <textarea
-          placeholder="Description"
-          value={newTodoDescription}
-          onChange={handleDescriptionChange}
-        ></textarea></div>
-        <div>
-        <button className='add-coontainer' onClick={handleAddTodo}>Add Task</button>
+        <form onSubmit={handleFormSubmit}>
+          <input
+            type="text"
+            placeholder="Enter title"
+            value={title}
+            onChange={handleTitleChange}
+          />
+          <textarea
+            placeholder="Enter description"
+            value={description}
+            onChange={handleDescriptionChange}
+          ></textarea>
+          <button type="submit">Add Todo</button>
+        </form>
       </div>
-      <ul className="todo-list">
-        {todoList.map((todo) => (
-          <li key={todo.id} className={`todo-item ${todo.isCompleted ? "completed" : ""}`}>
-            <div className="todo-card">
-              <div>
-                <h3>{todo.title}</h3>
-                <p>{todo.description}</p>
+      <div>
+        <h2>Pending Tasks</h2>
+        <ul className="todo-list">
+          {todos.map((todo) => (
+            <li key={todo.id} className="todo-item">
+              <div className="todo-card">
+                <div>
+                  <h3>{todo.title}</h3>
+                  <p>{todo.description}</p>
+                </div>
+                <button
+                  className="complete-button"
+                  onClick={() => handleCompleteTodo(todo.id)}
+                >
+                  Complete
+                </button>
+                <button
+                  className="delete-button"
+                  onClick={() => handleDeleteTodo(todo.id)}
+                >
+                  Delete
+                </button>
               </div>
-              <div>
-                {todo.isCompleted ? (
-                  <button className="delete-button" onClick={() => handleDeleteClick(todo.id)}>
-                    Remove
+            </li>
+          ))}
+        </ul>
+      </div>
+      {completedTodos.length > 0 && (
+        <div>
+          <h2>Completed Tasks</h2>
+          <ul className="todo-list">
+            {completedTodos.map((todo) => (
+              <li key={todo.id} className="todo-item completed">
+                <div className="todo-card">
+                  <div>
+                    <h3>{todo.title}</h3>
+                    <p>{todo.description}</p>
+                  </div>
+                  <button
+                    className="delete-button"
+                    onClick={() => handleDeleteTodo(todo.id)}
+                  >
+                    Delete
                   </button>
-                ) : (
-                  <button className="complete-button" onClick={() => handleCompleteClick(todo.id)}>
-                    Complete
-                  </button>
-                )}
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
